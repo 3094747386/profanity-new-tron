@@ -13,18 +13,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install OpenCL and OpenSSL
+      - name: Show repo files
+        run: |
+          Get-ChildItem -Recurse -Depth 2 | Select-Object FullName
+
+      - name: Install dependencies
         run: |
           & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install opencl:x64-windows openssl:x64-windows
 
       - name: Configure CMake
         run: |
-          cmake -S . -B build -A x64 -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -S . -B build -A x64 `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Release
-        run: cmake --build build --config Release
+        run: |
+          cmake --build build --config Release --verbose
 
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: profanity-new-tron-windows
