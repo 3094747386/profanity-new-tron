@@ -1,0 +1,33 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenCL and OpenSSL
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install opencl:x64-windows openssl:x64-windows
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -A x64 -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: profanity-new-tron-windows
+          path: |
+            build/**/*.exe
+            build/**/*.dll
